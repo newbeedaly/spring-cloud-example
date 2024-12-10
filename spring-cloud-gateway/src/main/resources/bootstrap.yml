@@ -1,0 +1,56 @@
+server:
+  port: 7000
+  servlet:
+    context-path: /
+spring:
+  profiles:
+    active: @profile@
+  application:
+    name: gateway
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      discovery:
+        health-check-timeout: 10s #检测超时时间
+        health-check-critical-timeout: 30s #设置超时30秒之后，注销服务,这里数字要大于心跳检测的数字
+        heartbeat:
+          enabled: true
+          ttl: 10
+        prefer-ip-address: true
+        instance-group: default #设置实例所在组
+      config:
+        format: YAML
+        prefixes:
+          - config
+        # /config/gateway/dev文件，/代表目录，将application-dev.yml拷贝到consul的配置中。变化时自动刷新server-name
+        # data-key: dev
+    gateway:
+      enabled: true
+      discovery:
+        locator:
+          # 开启从注册中心动态创建路由的功能，利用服务名路由，开启时FeignClient依赖时需要添加@Lazy注解(在@Autowired上添加@Lazy注解)，否则使用 Autowired 注入 Client 时程序启动时会卡死。
+          enabled: true
+          # 请求服务名配置转为小写
+          lower-case-service-id: true
+      routes:
+        - id: common
+          uri: lb://common
+          predicates:
+            - Path=/common/**
+          filters:
+            - StripPrefix=1
+
+# feign
+feign:
+  httpclient:
+    enabled: true
+# 暴露接口，用于AMQP
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

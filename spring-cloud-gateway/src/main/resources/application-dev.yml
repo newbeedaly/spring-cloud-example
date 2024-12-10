@@ -1,0 +1,11 @@
+logging:
+  level:
+    root: info
+    cn.newbeedaly.gateway: debug
+  config: classpath:logback-spring-dev.xml
+  logback:
+    rollingpolicy:
+      max-file-size: 250MB
+      max-history: 7
+      total-size-cap: 1GB
+      clean-history-on-start: true

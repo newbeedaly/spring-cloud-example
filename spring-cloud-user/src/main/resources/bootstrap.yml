@@ -1,0 +1,51 @@
+server:
+  port: 10001
+  servlet:
+    context-path: /
+spring:
+  profiles:
+    active: @profile@
+  application:
+    name: user
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      discovery:
+        health-check-timeout: 10s #检测超时时间
+        health-check-critical-timeout: 30s #设置超时30秒之后，注销服务,这里数字要大于心跳检测的数字
+        heartbeat:
+          enabled: true
+          ttl: 10
+        prefer-ip-address: true
+        instance-group: default #设置实例所在组
+      config:
+        format: YAML
+        prefixes:
+          - config
+        # /config/user/dev文件，/代表目录，将application-dev.yml拷贝到consul的配置中。变化时自动刷新server-name
+        data-key: dev
+    stream:
+      kafka:
+        binder:
+          brokers: 127.0.0.1:9092
+          # auto-create-topics: true
+        bindings:
+          # 此处一定要跟方法名匹配上
+          kafkaMsg-in-0: # 通道名称
+            destination: kafka-topic # 消息目的地 topic name
+            content-type: application/json # text/plain / application/json # 消息格式，接收端不用指定
+            binder: kafka
+            group: group1
+          kafkaMsg-out-0: # 通道名称
+            destination: kafka-topic # 消息目的地 topic name
+            # content-type: application/json # text/plain / application/json # 消息格式，接收端不用指定
+            binder: kafka
+      default-binder: kafka
+    function:
+      definition: kafkaMsg
+logging:
+  level:
+    root: info
